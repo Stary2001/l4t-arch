@@ -3,6 +3,8 @@ if [[ `whoami` != root ]]; then
 	exit
 fi
 
+mkdir -p tarballs
+
 if [[ ! -e tarballs/ArchLinuxARM-aarch64-latest.tar.gz ]]; then
 	wget -O tarballs/ArchLinuxARM-aarch64-latest.tar.gz http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 fi
