@@ -1,0 +1,226 @@
+# $Id$
+# Maintainer: AndyRTR <andyrtr@archlinux.org>
+# Maintainer: Jan de Groot <jgc@archlinux.org>
+
+pkgbase=xorg-server
+pkgname=('xorg-server-tegra' 'xorg-server-tegra-common' 'xorg-server-tegra-devel')
+pkgver=1.19.6.7
+pkgrel=1
+arch=('aarch64')
+license=('custom')
+groups=('xorg')
+url="http://xorg.freedesktop.org"
+makedepends=('pixman' 'libx11' 'mesa' 'mesa-libgl' 'xf86driproto' 'xcmiscproto' 'xtrans' 'bigreqsproto' 'randrproto' 
+             'inputproto' 'fontsproto' 'videoproto' 'presentproto' 'compositeproto' 'recordproto' 'scrnsaverproto'
+             'resourceproto' 'xineramaproto' 'libxkbfile' 'libxfont2' 'renderproto' 'libpciaccess' 'libxv'
+             'xf86dgaproto' 'libxmu' 'libxrender' 'libxi' 'dmxproto' 'libxaw' 'libdmx' 'libxtst' 'libxres'
+             'xorg-xkbcomp' 'xorg-util-macros' 'xorg-font-util' 'glproto' 'dri2proto' 'libgcrypt' 'libepoxy'
+             'xcb-util' 'xcb-util-image' 'xcb-util-renderutil' 'xcb-util-wm' 'xcb-util-keysyms' 'dri3proto'
+             'libxshmfence' 'libunwind' 'systemd' 'wayland-protocols' 'git')
+
+source=(https://xorg.freedesktop.org/releases/individual/xserver/${pkgbase}-${pkgver}.tar.bz2)
+validpgpkeys=('7B27A3F1A6E18CD9588B4AE8310180050905E40C'
+              'C383B778255613DFDB409D91DB221A6900000011'
+              'DD38563A8A8224537D1F90E45B8A2D50A0ECD0D3'
+              '995ED5C8A6138EB0961F18474C09DD83CAAA50B2')
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${pkgbase}-${pkgver}"
+  autoreconf -vfi
+}
+
+build() {
+  # Since pacman 5.0.2-2, hardened flags are now enabled in makepkg.conf
+  # With them, module fail to load with undefined symbol.
+  # See https://bugs.archlinux.org/task/55102 / https://bugs.archlinux.org/task/54845
+  export CFLAGS=${CFLAGS/-fno-plt}
+  export CXXFLAGS=${CXXFLAGS/-fno-plt}
+  export LDFLAGS=${LDFLAGS/,-z,now}
+
+  cd "${pkgbase}-${pkgver}"
+  ./configure --prefix=/usr \
+      --enable-ipv6 \
+      --enable-dri \
+      --enable-dmx \
+      --enable-xvfb \
+      --enable-xnest \
+      --enable-composite \
+      --enable-xcsecurity \
+      --enable-libunwind \
+      --enable-xorg \
+      --enable-xephyr \
+      --enable-glamor \
+      --enable-xwayland \
+      --enable-kdrive \
+      --enable-kdrive-kbd \
+      --enable-kdrive-mouse \
+      --enable-config-udev \
+      --enable-systemd-logind \
+      --enable-suid-wrapper \
+      --disable-install-setuid \
+      --enable-record \
+      --disable-xfbdev \
+      --disable-xfake \
+      --disable-static \
+      --libexecdir=/usr/lib/xorg-server \
+      --sysconfdir=/etc \
+      --localstatedir=/var \
+      --with-xkb-path=/usr/share/X11/xkb \
+      --with-xkb-output=/var/lib/xkb \
+      --with-fontrootdir=/usr/share/fonts \
+      --with-sha1=libgcrypt
+      
+#      --without-dtrace \
+#      --disable-linux-acpi --disable-linux-apm \
+
+  make
+
+  # Disable subdirs for make install rule to make splitting easier
+  sed -e 's/^DMX_SUBDIRS =.*/DMX_SUBDIRS =/' \
+      -e 's/^XVFB_SUBDIRS =.*/XVFB_SUBDIRS =/' \
+      -e 's/^XNEST_SUBDIRS =.*/XNEST_SUBDIRS = /' \
+      -e 's/^KDRIVE_SUBDIRS =.*/KDRIVE_SUBDIRS =/' \
+      -e 's/^XWAYLAND_SUBDIRS =.*/XWAYLAND_SUBDIRS =/' \
+      -i hw/Makefile
+}
+
+package_xorg-server-tegra-common() {
+  pkgdesc="Xorg server common files"
+  provides=(xorg-server-common)
+  conflicts=(xorg-server-common)
+  replaces=(xorg-server-common)
+  depends=(xkeyboard-config xorg-xkbcomp xorg-setxkbmap)
+
+  cd "${pkgbase}-${pkgver}"
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-common"
+  install -m644 COPYING "${pkgdir}/usr/share/licenses/xorg-server-common"
+  
+  make -C xkb DESTDIR="${pkgdir}" install-data
+
+  install -m755 -d "${pkgdir}/usr/share/man/man1"
+  install -m644 man/Xserver.1 "${pkgdir}/usr/share/man/man1/"
+
+  install -m755 -d "${pkgdir}/usr/lib/xorg"
+  install -m644 dix/protocol.txt "${pkgdir}/usr/lib/xorg/"
+}
+
+package_xorg-server-tegra() {
+  pkgdesc="Xorg X server"
+  depends=(libepoxy libxfont2 pixman xorg-server-common libunwind dbus libgl xf86-input-libinput
+           libpciaccess libdrm libxshmfence) # FS#52949
+
+  # see xorg-server-*/hw/xfree86/common/xf86Module.h for ABI versions - we provide major numbers that drivers can depend on
+  # and /usr/lib/pkgconfig/xorg-server.pc in xorg-server-devel pkg
+  provides=('X-ABI-VIDEODRV_VERSION=23' 'X-ABI-XINPUT_VERSION=24.1' 'X-ABI-EXTENSION_VERSION=10.0' 'x-server' 'xorg-server')
+  conflicts=('nvidia-utils<=331.20' 'glamor-egl' 'xf86-video-modesetting' 'xorg-server')
+  replaces=('glamor-egl' 'xf86-video-modesetting' 'xorg-server')
+  install=xorg-server.install
+
+  cd "${pkgbase}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+  
+  # distro specific files must be installed in /usr/share/X11/xorg.conf.d
+  install -m755 -d "${pkgdir}/etc/X11/xorg.conf.d"
+  
+  rm -rf "${pkgdir}/var"
+
+  rm -f "${pkgdir}/usr/share/man/man1/Xserver.1"
+  rm -f "${pkgdir}/usr/lib/xorg/protocol.txt"
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server/COPYING"
+
+  rm -rf "${pkgdir}/usr/lib/pkgconfig"
+  rm -rf "${pkgdir}/usr/include"
+  rm -rf "${pkgdir}/usr/share/aclocal"
+}
+
+package_xorg-server-xephyr() {
+  pkgdesc="A nested X server that runs as an X application"
+  depends=(libxfont2 libgl libepoxy libunwind libsystemd libxv pixman xorg-server-common xcb-util-image
+           xcb-util-renderutil xcb-util-wm xcb-util-keysyms)
+
+  cd "${pkgbase}-${pkgver}/hw/kdrive"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xephyr"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xephyr/COPYING"
+}
+
+package_xorg-server-xvfb() {
+  pkgdesc="Virtual framebuffer X server"
+  depends=(libxfont2 libunwind libsystemd pixman xorg-server-common xorg-xauth libgl)
+
+  cd "${pkgbase}-${pkgver}/hw/vfb"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 "${srcdir}/xvfb-run" "${pkgdir}/usr/bin/"
+  install -m644 "${srcdir}/xvfb-run.1" "${pkgdir}/usr/share/man/man1/"
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xvfb"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xvfb/COPYING"
+}
+
+package_xorg-server-xnest() {
+  pkgdesc="A nested X server that runs as an X application"
+  depends=(libxfont2 libxext libunwind pixman xorg-server-common libsystemd)
+
+  cd "${pkgbase}-${pkgver}/hw/xnest"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xnest"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xnest/COPYING"
+}
+
+package_xorg-server-xdmx() {
+  pkgdesc="Distributed Multihead X Server and utilities"
+  depends=(libxfont2 libxi libxaw libxrender libdmx libxfixes libunwind pixman xorg-server-common)
+
+  cd "${pkgbase}-${pkgver}/hw/dmx"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xdmx"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xdmx/COPYING"
+}
+
+package_xorg-server-xwayland() {
+  pkgdesc="run X clients under wayland"
+  depends=(libxfont2 libepoxy libunwind libsystemd libgl pixman xorg-server-common)
+
+  cd "${pkgbase}-${pkgver}/hw/xwayland"
+  make DESTDIR="${pkgdir}" install
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-xwayland"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-xwayland/COPYING"
+}
+
+package_xorg-server-tegra-devel() {
+  pkgdesc="Development files for the X.Org X server"
+
+  provides=(xorg-server-devel)
+  conflicts=(xorg-server-devel)
+  replaces=(xorg-server-devel)
+
+  depends=(# see pkgdir/usr/lib/pkgconfig/xorg-server.pc
+           xproto randrproto renderproto xextproto inputproto kbproto 
+           fontsproto pixman videoproto xf86driproto glproto 
+           mesa dri2proto dri3proto xineramaproto libpciaccess
+           resourceproto scrnsaverproto presentproto
+           # not technically required but almost every Xorg pkg needs it to build
+           xorg-util-macros)
+
+  cd "${pkgbase}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+
+  rm -rf "${pkgdir}/usr/bin"
+  rm -rf "${pkgdir}/usr/share/man"
+  rm -rf "${pkgdir}/usr/share/doc"
+  rm -rf "${pkgdir}/usr/share/X11"
+  rm -rf "${pkgdir}/usr/lib/xorg"
+  rm -rf "${pkgdir}/usr/lib/xorg-server"
+  rm -rf "${pkgdir}/var"
+
+  install -m755 -d "${pkgdir}/usr/share/licenses/xorg-server-devel"
+  ln -sf ../xorg-server-common/COPYING "${pkgdir}/usr/share/licenses/xorg-server-devel/COPYING"
+}

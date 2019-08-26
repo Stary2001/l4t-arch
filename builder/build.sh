@@ -18,6 +18,8 @@ fi
 
 umount -R build
 rm -r build
+rm arch.tar.gz
+
 mkdir build
 cp tarballs/*.pkg.* build/
 cp build-stage2.sh base-pkgs optional-pkgs build/
