@@ -20,7 +20,7 @@ cp build-stage2.sh build/
 cp optional-pkgs build/
 cp reboot_payload.bin build/reboot_payload.bin
 
-bsdtar xf ../tarballs/ArchLinuxARM-aarch64-latest.tar.gz -C build
+bsdtar xf tarballs/ArchLinuxARM-aarch64-latest.tar.gz -C build
 
 cat << EOF >> build/etc/pacman.conf
 [switch]
