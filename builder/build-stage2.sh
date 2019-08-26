@@ -5,7 +5,7 @@ pacman-key --init
 pacman-key --populate archlinuxarm
 
 pacman -Syu --noconfirm
-pacman -S xorg-server-tegra # important
+pacman -S xorg-server-tegra --noconfirm # important
 pacman -S switch-configs --noconfirm
 pacman -S tegra-bsp --noconfirm
 pacman -S `cat base-pkgs` --noconfirm
