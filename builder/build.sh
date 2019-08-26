@@ -16,6 +16,8 @@ if [[ ! -e reboot_payload.bin ]]; then
 	rm hekate_ctcaer_5.0.1_Nyx_0.8.1.zip
 fi
 
+umount -R build
+rm -r build
 mkdir build
 cp tarballs/*.pkg.* build/
 cp build-stage2.sh base-pkgs optional-pkgs build/
