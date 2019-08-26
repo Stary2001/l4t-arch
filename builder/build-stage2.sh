@@ -15,7 +15,7 @@ systemctl enable r2p
 systemctl enable lightdm
 sed -i 's/#keyboard=/keyboard=onboard/' /etc/lightdm/lightdm-gtk-greeter.conf
 
-pacman -Scc --noconfirm
+yes | pacman -Scc
 
 mv /reboot_payload.bin /lib/firmware/
 gpasswd -a alarm audio
