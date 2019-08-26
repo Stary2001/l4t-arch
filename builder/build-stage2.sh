@@ -5,8 +5,8 @@ pacman-key --init
 pacman-key --populate archlinuxarm
 
 pacman -Syu --noconfirm
-pacman -U xorg-server-1.19.6-2-aarch64.pkg.tar.xz --noconfirm
-#pacman -S xorg-server-tegra --noconfirm
+#pacman -U xorg-server-1.19.6-2-aarch64.pkg.tar.xz --noconfirm
+pacman -S xorg-server-tegra --noconfirm
 pacman -S switch-configs --noconfirm
 pacman -S tegra-bsp --noconfirm
 pacman -S `cat base-pkgs` --noconfirm
