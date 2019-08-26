@@ -1,0 +1,97 @@
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=tegra-bsp
+pkgver=r32
+pkgrel=1
+#epoch=
+pkgdesc="just literal shit"
+arch=(any)
+url="nvidia.com"
+license=('GPL')
+groups=()
+depends=()
+makedepends=()
+source=(https://developer.download.nvidia.com/embedded/L4T/r32-2_Release_v1.0/Nano-TX1/Jetson-210_Linux_R32.2.0_aarch64.tbz2)
+noextract=()
+sha256sums=('SKIP')
+conflicts=(tegra-drivers)
+
+prepare() {
+        mkdir -p "$pkgname-$pkgver"
+}
+
+build() {
+	tar xvf Linux_for_Tegra/nv_tegra/nvidia_drivers.tbz2
+	tar xvf Linux_for_Tegra/nv_tegra/config.tbz2
+
+	#ar x Linux_for_Tegra/nv_tegra/nvidia-l4t-3d-core_32.2.0-20190716172031_arm64.deb
+	#tar xf data.tar.xz
+}
+
+package() {
+	# Hold on. We don't want ALL of /etc.
+	mkdir -p $pkgdir/etc/
+	mkdir -p $pkgdir/etc/systemd/system
+
+	sed -e 's_/usr/lib/aarch64-linux-gnu_/usr/lib_' -i etc/nv_tegra_release
+	cp -r etc/nv_tegra_release $pkgdir/etc/nv_tegra_release
+	cp -r etc/ld.so.conf.d $pkgdir/etc/ld.so.conf.d
+
+	cp etc/systemd/nv* $pkgdir/etc/systemd/
+	cp etc/systemd/system/nv*service $pkgdir/etc/systemd/system/
+	cp etc/asound.conf.* $pkgdir/etc/
+	
+	# Get the udev rules & xorg config.
+	cp -r etc/udev/ $pkgdir/etc/udev
+	mkdir $pkgdir/etc/X11
+	cp -r etc/X11/xorg.conf $pkgdir/etc/X11/
+
+	mkdir -p $pkgdir/usr/lib/firmware/ $pkgdir/usr/lib/systemd/
+	
+	# Move usr/lib/aarch64-linux-gnu -> usr/lib.
+	cp -r usr/lib/aarch64-linux-gnu/* $pkgdir/usr/lib/
+	
+	# Same for lib/firmware, lib/systemd.
+	cp -r lib/firmware/* $pkgdir/usr/lib/firmware/
+	cp -r lib/systemd/* $pkgdir/usr/lib/systemd/
+
+	# Pass through these 2 in usr/lib.
+	cp -r usr/lib/xorg $pkgdir/usr/lib/xorg/
+	cp -r usr/lib/nvidia $pkgdir/usr/lib/nvidia/
+	
+	# These are OK as well...
+	cp -r usr/share $pkgdir/usr/share/
+	cp -r usr/bin $pkgdir/usr/bin/
+	# move sbin -> bin
+	cp -r usr/sbin/* $pkgdir/usr/bin/
+	# pass through
+	cp -r var/ $pkgdir/var/
+	cp -r opt/ $pkgdir/opt/ 
+
+	mkdir $pkgdir/usr/lib/firmware/gm20b
+	pushd $pkgdir/usr/lib/firmware/gm20b > /dev/null 2>&1
+                ln -sf "../tegra21x/acr_ucode.bin" "acr_ucode.bin"
+                ln -sf "../tegra21x/gpmu_ucode.bin" "gpmu_ucode.bin"
+                ln -sf "../tegra21x/gpmu_ucode_desc.bin" \
+                                "gpmu_ucode_desc.bin"
+                ln -sf "../tegra21x/gpmu_ucode_image.bin" \
+                                "gpmu_ucode_image.bin"
+                ln -sf "../tegra21x/gpu2cde.bin" \
+                                "gpu2cde.bin"
+                ln -sf "../tegra21x/NETB_img.bin" "NETB_img.bin"
+                ln -sf "../tegra21x/fecs_sig.bin" "fecs_sig.bin"
+                ln -sf "../tegra21x/pmu_sig.bin" "pmu_sig.bin"
+                ln -sf "../tegra21x/pmu_bl.bin" "pmu_bl.bin"
+                ln -sf "../tegra21x/fecs.bin" "fecs.bin"
+                ln -sf "../tegra21x/gpccs.bin" "gpccs.bin"
+                popd > /dev/null
+
+	# Add a symlink for the Vulkan ICD.
+	mkdir -p $pkgdir/etc/vulkan/icd.d
+	ln -s /usr/lib/tegra/nvidia_icd.json $pkgdir/etc/vulkan/icd.d/nvidia_icd.json
+
+	# And another one for EGL.
+	mkdir -p $pkgdir/usr/share/glvnd/egl_vendor.d
+	ln -s /usr/lib/tegra-egl/nvidia.json $pkgdir/usr/share/glvnd/egl_vendor.d/
+	
+	cp $pkgdir/usr/lib/tegra-egl/ld.so.conf $pkgdir/etc/ld.so.conf.d/
+}

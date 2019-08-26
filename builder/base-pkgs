@@ -1,0 +1,8 @@
+xorg-xrandr
+xorg-xinput
+xorg-xinit
+onboard
+wpa_supplicant
+dialog
+pulseaudio
+pulseaudio-alsa

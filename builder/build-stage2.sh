@@ -1,0 +1,23 @@
+#!/usr/bin/bash
+uname -a
+
+pacman-key --init
+pacman-key --populate archlinuxarm
+
+pacman -Syu --noconfirm
+pacman -S xorg-server-tegra
+pacman -S switch-configs
+pacman -S tegra-bsp
+pacman -S `cat base-pkgs` --noconfirm
+pacman -S `cat optional-pkgs` --noconfirm
+
+systemctl enable r2p
+
+systemctl enable lightdm
+sed -i 's/#keyboard=/keyboard=onboard/' /etc/lightdm/lightdm-gtk-greeter.conf
+
+pacman -Scc --noconfirm
+
+mv /reboot_payload.bin /lib/firmware/
+gpasswd -a alarm audio
+gpasswd -a alarm video

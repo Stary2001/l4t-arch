@@ -1,0 +1,33 @@
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=switch-configs
+pkgver=1
+pkgrel=1
+epoch=
+pkgdesc=""
+arch=(any)
+url=""
+license=('GPL')
+optdepends=(xorg-xinput xorg-xrandr libpulse)
+install=
+source=(git+https://gitlab.com/switchroot/switch-l4t-configs.git r2p.service 10-monitor.conf)
+sha256sums=(SKIP SKIP SKIP)
+noextract=()
+validpgpkeys=()
+
+package() {
+	mkdir -p $pkgdir/etc/systemd/system $pkgdir/etc/X11/xorg.conf.d $pkgdir/usr/bin $pkgdir/usr/lib/udev/rules.d $pkgdir/etc/dconf/db/local.d $pkgdir/etc/dconf/profile $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/ $pkgdir/usr/lib/systemd/system
+	cp r2p.service $pkgdir/etc/systemd/system/
+	cp 10-monitor.conf $pkgdir/etc/X11/xorg.conf.d/
+
+	cd switch-l4t-configs
+
+	cp switch-dock-handler/92-dp-switch.rules $pkgdir/usr/lib/udev/rules.d/
+	cp switch-dock-handler/dock-hotplug $pkgdir/usr/bin/
+	sed 's/sudo -u/sudo -s -u/g' -i $pkgdir/usr/bin/dock-hotplug
+
+	cp switch-dconf-customizations/99-switch $pkgdir/etc/dconf/db/local.d/
+	cp switch-dconf-customizations/user $pkgdir/etc/dconf/profile/
+	cp switch-alsa-ucm/* $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/
+	cp switch-bluetooth-service/switch-bluetooth.service $pkgdir/usr/lib/systemd/system/
+	#cp switch-touch-rules/* $pkgdir/usr/lib/udev/rules.d/
+}
