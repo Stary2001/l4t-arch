@@ -2,11 +2,11 @@
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 NC='\033[0m'
-
+distro=0
 setup_base(){
 
 	mkdir -p tarballs
-
+	
 	if [[ ! -e tarballs/ArchLinuxARM-aarch64-latest.tar.gz ]]; then
 		wget -O tarballs/ArchLinuxARM-aarch64-latest.tar.gz http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
 	fi
@@ -33,7 +33,7 @@ setup_base(){
 	[switch]
 	SigLevel = Optional
 	Server = https://9net.org/l4t-arch/
-	EOF
+EOF
 
 	# cursed
 	mount --bind build build
@@ -47,12 +47,16 @@ package_build() {
 	rm etc/pacman.d/gnupg/S.gpg-agent*
 	if [ $1 -eq 1 ]; then	
 		bsdtar -cz -f ../arch.tar.gz .
+
 	elif [ $1 -eq 2 ]; then
 		bsdtar -cz -f ../black-arch.tar.gz .
+
 	elif [ $1 -eq 3 ]; then
 		bsdtar -cz -f ../manjaro.tar.gz .
+
 	elif [ $1 -eq 4 ]; then
 		bsdtar -cz -f black-manjaro.tar.gz .
+
 	fi
 	
 }
@@ -63,18 +67,17 @@ build_options() {
 	echo -e "##################################"
 	echo -e "#[1] - Arch Linux                #"
 	echo -e "#[2] - BlackArch Linux           #"
-	echo -e "#[3] - Manjaro Linux             #"
-	echo -e "#[4] - BlackArch-Manjaro Mix     #"
+	#echo -e "#[3] - Manjaro Linux             #"
+	#echo -e "#[4] - BlackArch-Manjaro Mix     #"
+	echo -e "#[0] - Exit                      #"
 	echo -e "##################################"
+	echo -e "Enter Choice: "
 	read distro
-	return $distro
 }
 	
-	
-}
 
 add_blackarch(){
-	curl -O https://blackarch.org/strap.sh	
+	wget https://blackarch.org/strap.sh	
 	chmod +x strap.sh
 	mv strap.sh build/	
 	arch-chroot build ./strap.sh
@@ -91,25 +94,35 @@ if [[ `whoami` != root ]]; then
 	exit
 fi
 
-distro=build_options()
-if [ $distro -mt 4 ]; then
-	echo "Please choose an availble option"
-	distro=build_options()
+build_options
+distro=$((distro))
+
+if [ $distro -eq 0 ]; then
+	exit
 fi
-setup_base()
+
+if [ $distro -gt 4 -o $distro -lt 1 ]; then
+	echo "Please choose an availble option"
+	build_options
+fi
+
+setup_base
+
 #Do extra stuff for Manjaro and Blackarch.
-if [ $distro != 1 ]; then
-	if [ $distro -eq 2 ]; then
-		add_blackarch()
-
-	elif [ $distro -eq 3 ]; then
-		add_manjaro()	
-	
-	elif [ $distro -eq 4 ]; then
-		add_manjaro()
-		add_blackarch() 	
+if [[ $distro -gt 1 ]]; then
+	if [[ $distro == "2" ]]; then
+		add_blackarch
 	fi
+fi
 
-fi    
 
-package_build($distro)
+#elif [[ $distro == "3" ]]; then
+#	add_manjaro()	
+
+#elif [[ $distro == "4" ]]; then
+#	add_manjaro()
+#	add_blackarch() 	
+#fi
+#fi    
+
+package_build $distro
