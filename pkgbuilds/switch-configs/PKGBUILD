@@ -9,8 +9,8 @@ url=""
 license=('GPL')
 optdepends=(xorg-xinput xorg-xrandr libpulse)
 install=
-source=(git+https://gitlab.com/switchroot/switch-l4t-configs.git r2p.service 10-monitor.conf)
-sha256sums=(SKIP SKIP SKIP)
+source=(git+https://gitlab.com/switchroot/switch-l4t-configs.git r2p.service 10-monitor.conf asound.state)
+sha256sums=(SKIP SKIP SKIP SKIP)
 noextract=()
 validpgpkeys=()
 
@@ -29,5 +29,8 @@ package() {
 	cp switch-dconf-customizations/user $pkgdir/etc/dconf/profile/
 	cp switch-alsa-ucm/* $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/
 	cp switch-bluetooth-service/switch-bluetooth.service $pkgdir/usr/lib/systemd/system/
+	
+	mkdir $pkgdir/var/lib/alsa/
+	cp asound.state $pkgdir/var/lib/alsa/
 	#cp switch-touch-rules/* $pkgdir/usr/lib/udev/rules.d/
 }
