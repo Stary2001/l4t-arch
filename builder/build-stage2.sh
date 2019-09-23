@@ -12,8 +12,9 @@ pacman -S `cat base-pkgs` --noconfirm
 pacman -S `cat optional-pkgs` --noconfirm
 
 systemctl enable r2p
-
 systemctl enable lightdm
+systemctl enable alsa-restore
+
 sed -i 's/#keyboard=/keyboard=onboard/' /etc/lightdm/lightdm-gtk-greeter.conf
 
 yes | pacman -Scc
