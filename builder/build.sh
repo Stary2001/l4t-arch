@@ -33,6 +33,8 @@ SigLevel = Optional
 Server = https://9net.org/l4t-arch/
 EOF
 
+echo -e "/dev/mmcblk0p1	/mnt/hos_data	vfat	rw,relatime	0	2\n/boot /mnt/hos_data/l4t-arch/	none	bind	0	0" >> build/etc/fstab
+
 # cursed
 mount --bind build build
 arch-chroot build ./build-stage2.sh

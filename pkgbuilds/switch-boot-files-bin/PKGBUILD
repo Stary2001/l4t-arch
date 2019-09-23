@@ -1,0 +1,23 @@
+# Maintainer: Ezekiel Bethel <zek@9net.org>
+
+pkgname=switch-boot-files-bin
+pkgver=1
+pkgrel=1
+epoch=
+pkgdesc=""
+arch=(any)
+url=""
+license=()
+optdepends=()
+install=
+source=(https://9net.org/l4t-arch/boot-files.tar.gz)
+sha256sums=(SKIP)
+noextract=()
+validpgpkeys=()
+
+package() {
+	mkdir -p $pkgdir/boot/ $pkgdir/mnt/hos_data/
+
+	cp -r $srcdir/l4t-arch/* $pkgdir/boot/
+	cp -r $srcdir/bootloader $pkgdir/mnt/hos_data/
+}
