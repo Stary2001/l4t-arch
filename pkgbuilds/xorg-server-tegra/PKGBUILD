@@ -1,10 +1,9 @@
-# $Id$
 # Maintainer: AndyRTR <andyrtr@archlinux.org>
 # Maintainer: Jan de Groot <jgc@archlinux.org>
 
 pkgbase=xorg-server
 pkgname=('xorg-server-tegra' 'xorg-server-tegra-common' 'xorg-server-tegra-devel')
-pkgver=1.19.6.7
+pkgver=1.19.6
 pkgrel=1
 arch=('aarch64')
 license=('custom')

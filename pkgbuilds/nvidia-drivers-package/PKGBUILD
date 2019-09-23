@@ -1,4 +1,5 @@
-# Maintainer: Your Name <youremail@domain.com>
+# Maintainer: Ezekiel Bethel <zek@9net.org>
+
 pkgname=tegra-bsp
 pkgver=r32
 pkgrel=1
