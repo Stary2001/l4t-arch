@@ -6,5 +6,6 @@ wpa_supplicant
 dialog
 pulseaudio
 pulseaudio-alsa
+alsa-utils
 joycond-git
 switch-boot-files-bin

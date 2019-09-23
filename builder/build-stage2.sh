@@ -14,7 +14,6 @@ pacman -S `cat optional-pkgs` --noconfirm
 
 systemctl enable r2p
 systemctl enable lightdm
-systemctl enable alsa-restore
 
 sed -i 's/#keyboard=/keyboard=onboard/' /etc/lightdm/lightdm-gtk-greeter.conf
 
@@ -24,7 +23,7 @@ mv /reboot_payload.bin /lib/firmware/
 gpasswd -a alarm audio
 gpasswd -a alarm video
 
-rm /boot/*
-rm /mnt/hos_data/*
+rm -r /boot/*
+rm -r /mnt/hos_data/*
 
 mkdir -p /mnt/hos_data
