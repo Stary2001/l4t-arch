@@ -4,10 +4,11 @@ uname -a
 pacman-key --init
 pacman-key --populate archlinuxarm
 
+# we won't be needing this
+pacman -R linux-aarch64 --noconfirm
+
 pacman -Syu --noconfirm
-pacman -S xorg-server-tegra --noconfirm # important
-pacman -S switch-configs --noconfirm
-pacman -S tegra-bsp --noconfirm
+pacman -S xorg-server-tegra switch-configs tegra-bsp --noconfirm # important
 pacman -S `cat base-pkgs` --noconfirm
 pacman -S `cat optional-pkgs` --noconfirm
 
