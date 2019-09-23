@@ -1,7 +1,7 @@
 # Maintainer: Your Name <youremail@domain.com>
 pkgname=switch-configs
 pkgver=1
-pkgrel=1
+pkgrel=2
 epoch=
 pkgdesc=""
 arch=(any)
@@ -15,7 +15,8 @@ noextract=()
 validpgpkeys=()
 
 package() {
-	mkdir -p $pkgdir/etc/systemd/system $pkgdir/etc/X11/xorg.conf.d $pkgdir/usr/bin $pkgdir/usr/lib/udev/rules.d $pkgdir/etc/dconf/db/local.d $pkgdir/etc/dconf/profile $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/ $pkgdir/usr/lib/systemd/system
+	mkdir -p $pkgdir/etc/systemd/system $pkgdir/etc/X11/xorg.conf.d $pkgdir/usr/bin $pkgdir/usr/lib/udev/rules.d $pkgdir/etc/dconf/db/local.d $pkgdir/etc/dconf/profile $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/ $pkgdir/usr/lib/systemd/system/ $pkgdir/var/lib/alsa/
+	cp asound.state $pkgdir/var/lib/alsa/
 	cp r2p.service $pkgdir/etc/systemd/system/
 	cp 10-monitor.conf $pkgdir/etc/X11/xorg.conf.d/
 
@@ -30,7 +31,5 @@ package() {
 	cp switch-alsa-ucm/* $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/
 	cp switch-bluetooth-service/switch-bluetooth.service $pkgdir/usr/lib/systemd/system/
 	
-	mkdir $pkgdir/var/lib/alsa/
-	cp asound.state $pkgdir/var/lib/alsa/
 	#cp switch-touch-rules/* $pkgdir/usr/lib/udev/rules.d/
 }

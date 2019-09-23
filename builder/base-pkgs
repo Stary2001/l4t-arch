@@ -6,3 +6,4 @@ wpa_supplicant
 dialog
 pulseaudio
 pulseaudio-alsa
+joycond-git
