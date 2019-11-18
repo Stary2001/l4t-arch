@@ -18,7 +18,7 @@ fi
 
 umount -R build
 rm -r build
-rm arch.tar.gz
+rm arch-boot.tar.gz arch-root.tar.gz
 
 mkdir build
 cp tarballs/*.pkg.* build/
@@ -42,4 +42,6 @@ umount build
 
 cd build
 rm etc/pacman.d/gnupg/S.gpg-agent*
-bsdtar -cz -f ../arch.tar.gz .
+mv arch-boot.tar.gz ..
+bsdtar -cz -f ../arch-root.tar.gz .
+cd ..
