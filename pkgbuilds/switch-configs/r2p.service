@@ -3,7 +3,7 @@ Description=Setup r2p
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash -c 'echo 1 > /sys/devices/r2p/default_payload' 
+ExecStart=/usr/bin/bash -c 'echo 1 > /sys/devices/r2p/default_payload_ready' 
 RemainAfterExit=true
 
 [Install]

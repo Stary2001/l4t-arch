@@ -8,3 +8,5 @@ pulseaudio
 pulseaudio-alsa
 alsa-utils
 joycond-git
+netctl
+wpa_supplicant
