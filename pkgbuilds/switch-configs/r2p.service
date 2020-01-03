@@ -1,5 +1,7 @@
 [Unit]
 Description=Setup r2p
+After=mnt-hos_data.mount
+Requires=mnt-hos_data.mount
 
 [Service]
 Type=oneshot
