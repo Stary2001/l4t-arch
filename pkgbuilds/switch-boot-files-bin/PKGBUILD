@@ -17,7 +17,8 @@ validpgpkeys=()
 
 package() {
 	mkdir -p $pkgdir/boot/ $pkgdir/mnt/hos_data/
-
+	mkdir -p $pkgdir/usr/lib/modules/
 	cp -r $srcdir/l4t-arch/* $pkgdir/boot/
 	cp -r $srcdir/bootloader $pkgdir/mnt/hos_data/
+	cp -r $srcdir/4.9.140+ $pkgdir/usr/lib/modules/
 }

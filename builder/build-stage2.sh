@@ -30,7 +30,7 @@ gpasswd -a alarm video
 umount /boot
 
 cd /mnt/hos_data/
-#tar cz * > /arch-boot.tar.gz
+tar cz * > /arch-boot.tar.gz
 cd /
 
 rm -r /boot/*

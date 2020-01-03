@@ -48,6 +48,6 @@ umount build
 
 cd build
 rm etc/pacman.d/gnupg/S.gpg-agent*
-#mv arch-boot.tar.gz ..
+mv arch-boot.tar.gz ..
 bsdtar -cz -f ../arch-root.tar.gz .
 cd ..
