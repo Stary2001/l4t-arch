@@ -1,0 +1,3 @@
+[submodule "pkgbuilds/systemd-suspend-modules"]
+	path = pkgbuilds/systemd-suspend-modules
+	url = https://aur.archlinux.org/systemd-suspend-modules.git

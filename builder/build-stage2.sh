@@ -12,7 +12,7 @@ pacman-key --populate archlinuxarm
 pacman -R linux-aarch64 --noconfirm
 
 pacman -Syu --noconfirm
-pacman -S xorg-server-tegra switch-configs tegra-bsp switch-boot-files-bin --noconfirm # important
+pacman -S xorg-server-tegra switch-configs tegra-bsp switch-boot-files-bin systemd-suspend-modules --noconfirm # important
 pacman -S `cat base-pkgs` --noconfirm
 pacman -S `cat optional-pkgs` --noconfirm
 
@@ -30,7 +30,7 @@ gpasswd -a alarm video
 umount /boot
 
 cd /mnt/hos_data/
-tar cz * > /arch-boot.tar.gz
+#tar cz * > /arch-boot.tar.gz
 cd /
 
 rm -r /boot/*
