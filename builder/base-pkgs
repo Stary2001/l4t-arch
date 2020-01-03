@@ -10,3 +10,4 @@ alsa-utils
 joycond-git
 netctl
 wpa_supplicant
+dhcpcd
