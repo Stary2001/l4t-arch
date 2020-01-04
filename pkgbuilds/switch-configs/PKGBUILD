@@ -2,7 +2,7 @@
 
 pkgname=switch-configs
 pkgver=1
-pkgrel=2
+pkgrel=3
 epoch=
 pkgdesc=""
 arch=(any)

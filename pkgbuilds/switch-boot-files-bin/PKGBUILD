@@ -1,7 +1,7 @@
 # Maintainer: Ezekiel Bethel <zek@9net.org>
 
 pkgname=switch-boot-files-bin
-pkgver=1
+pkgver=r32
 pkgrel=1
 epoch=
 pkgdesc=""
@@ -10,7 +10,7 @@ url=""
 license=()
 optdepends=()
 install=
-source=(https://9net.org/l4t-arch/boot-files.tar.gz)
+source=(https://9net.org/l4t-arch/boot-files-r32.tar.gz)
 sha256sums=(SKIP)
 noextract=()
 validpgpkeys=()
