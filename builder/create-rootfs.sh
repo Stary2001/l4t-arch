@@ -30,7 +30,7 @@ prepare() {
 
 setup_base(){
 	cp ${root_dir}/builder/build-stage2.sh ${root_dir}/builder/base-pkgs ${root_dir}/tmp/arch-rootfs/
-	cp -r ${root_dir}/pkgbuilds/*.tar.xz ${root_dir}/tmp/arch-rootfs/pkgs/
+	cp -r ${root_dir}/pkgbuilds/*.pkg.* ${root_dir}/tmp/arch-rootfs/pkgs/
 	
 	bsdtar xpf ${root_dir}/tarballs/ArchLinuxARM-aarch64-latest.tar.gz -C ${root_dir}/tmp/arch-rootfs/
 

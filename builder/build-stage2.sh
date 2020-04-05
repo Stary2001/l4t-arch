@@ -13,6 +13,10 @@ do
 	echo "Error check your build or let the script retry last cmd"
 done
 
+for pkg in `find /pkgs/*.pkg.* -type f`; do
+	pacman -U $pkg --noconfirm
+done
+
 systemctl enable r2p
 systemctl enable bluetooth
 systemctl enable lightdm
