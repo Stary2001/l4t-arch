@@ -6,8 +6,12 @@ wpa_supplicant
 dialog
 pulseaudio
 pulseaudio-alsa
+bluez
+sudo
+lxde
+lightdm
+lightdm-gtk-greeter
 alsa-utils
 joycond-git
 netctl
-wpa_supplicant
 dhcpcd

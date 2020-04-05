@@ -32,5 +32,5 @@ package() {
 	cp switch-alsa-ucm/* $pkgdir/usr/share/alsa/ucm/tegra-snd-t210ref-mobile-rt565x/
 	cp switch-bluetooth-service/switch-bluetooth.service $pkgdir/usr/lib/systemd/system/
 	
-	#cp switch-touch-rules/* $pkgdir/usr/lib/udev/rules.d/
+	# cp switch-touch-rules/* $pkgdir/usr/lib/udev/rules.d/
 }

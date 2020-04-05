@@ -10,15 +10,15 @@ url=""
 license=()
 optdepends=()
 install=
-source=(https://9net.org/l4t-arch/boot-files-r32.tar.gz)
+# source=(https://9net.org/l4t-arch/boot-files-r32.tar.gz)
+source=(boot-files-r32.tar.gz)
 sha256sums=(SKIP)
 noextract=()
 validpgpkeys=()
 
 package() {
-	mkdir -p $pkgdir/boot/ $pkgdir/mnt/hos_data/
+	mkdir -p $pkgdir/boot/
 	mkdir -p $pkgdir/usr/lib/modules/
-	cp -r $srcdir/l4t-arch/* $pkgdir/boot/
-	cp -r $srcdir/bootloader $pkgdir/mnt/hos_data/
+	cp -r $srcdir/bootloader $srcdir/l4t-arch $pkgdir/boot/
 	cp -r $srcdir/4.9.140+ $pkgdir/usr/lib/modules/
 }
