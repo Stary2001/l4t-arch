@@ -36,9 +36,9 @@ md5sums=("SKIP"
          "SKIP"
          "SKIP"
          "SKIP"
-         '41cb5fef62715ead2dd109dbea8413d6'
+         '2df9431c6bc2d19983f3b61886d7c9c2'
          'ce6c81ad1ad1f8b333fd6077d47abdaf'
-         '3dc88030a8f2f5a5f97266d99b149f77')
+         '3be13a4ae5ade34e36dc52c4e201ce7c')
 
 prepare() {
   cd $srcdir
@@ -209,6 +209,7 @@ _package() {
   # add vmlinux
   install -Dt "${pkgdir}/usr/lib/modules/${_kernver}/build" -m644 vmlinux
 
+  cd $srcdir
   # sed expression for following substitutions
   local _subst="
     s|%PKGBASE%|${pkgbase}|g
@@ -217,13 +218,13 @@ _package() {
   "
 
   # install mkinitcpio preset file
-  sed "${_subst}" ../linux.preset |
+  sed "${_subst}" linux.preset |
     install -Dm644 /dev/stdin "${pkgdir}/etc/mkinitcpio.d/${pkgbase}.preset"
 
   # install pacman hooks
-  sed "${_subst}" ../60-linux.hook |
+  sed "${_subst}" 60-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
-  sed "${_subst}" ../90-linux.hook |
+  sed "${_subst}" 90-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
 
   # i don't know why this appears, but it does?

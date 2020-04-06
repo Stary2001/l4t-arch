@@ -2,7 +2,7 @@
 Type = File
 Operation = Install
 Operation = Upgrade
-Target = boot/Image
+Target = boot/l4t-arch/Image
 Target = usr/lib/initcpio/*
 
 [Action]
