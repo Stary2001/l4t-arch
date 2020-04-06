@@ -2,7 +2,7 @@
 
 pkgname=switch-boot-files-bin
 pkgver=r32
-pkgrel=1
+pkgrel=3
 epoch=
 pkgdesc=""
 arch=(any)
@@ -17,8 +17,7 @@ noextract=()
 validpgpkeys=()
 
 package() {
-	mkdir -p $pkgdir/boot/
-	mkdir -p $pkgdir/usr/lib/modules/
-	cp -r $srcdir/bootloader $srcdir/l4t-arch $pkgdir/boot/
-	cp -r $srcdir/4.9.140+ $pkgdir/usr/lib/modules/
+	mkdir -p $pkgdir/boot/l4t-arch/
+	cp -r $srcdir/bootloader $pkgdir/boot/
+	cp -r $srcdir/l4t-arch/{boot.scr,coreboot.rom} $pkgdir/boot/l4t-arch/
 }

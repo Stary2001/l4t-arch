@@ -43,13 +43,10 @@ md5sums=("SKIP"
 prepare() {
   cd $srcdir
   # put firmware in the right place..
-  cp Linux_for_Tegra/lib/firmware/tegra210b01_xusb_firmware ./
   tar xf Linux_for_Tegra/nv_tegra/nvidia_drivers.tbz2 lib/firmware/
   mv lib/firmware/* .
   ln -s brcm/bcm4354.hcd brcm/BCM4354.hcd
   cp BCM4356A3.hcd brcm/BCM4356A3.hcd
-
-  tar xf Linux_for_Tegra/nv_tegra/nvidia_drivers.tbz2
 
   # Shallow clone in prepare as shallow clones for vcs sources will never be implemented.
   # https://bugs.archlinux.org/task/52957
@@ -228,6 +225,10 @@ _package() {
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
   sed "${_subst}" ../90-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+
+  # i don't know why this appears, but it does?
+  # get rid of usr/lib/firmware/ttusb-budget/dspbootcode.bin
+  rm $pkgdir/usr/lib/firmware/ -r
 }
 
 _package-headers() {
