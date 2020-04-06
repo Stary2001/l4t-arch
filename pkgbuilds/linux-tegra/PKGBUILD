@@ -21,7 +21,7 @@ source=('linux-nvgpu-r32.2.2.tar.gz::https://gitlab.incom.co/CM-Shield/android_k
 #        'git+https://gitlab.com/switchroot/l4t-kernel-4.9.git#branch=linux-rel32'
         'git+https://gitlab.com/switchroot/l4t-kernel-nvidia.git#branch=linux-rel32'
         'git+https://gitlab.com/switchroot/l4t-platform-t210-switch.git#branch=linux-rel32'
-        'https://developer.download.nvidia.com/embedded/L4T/r32-2_Release_v1.0/Nano-TX1/Jetson-210_Linux_R32.2.0_aarch64.tbz2'
+        'https://developer.nvidia.com/embedded/dlc/r32-3-1_Release_v1.0/t210ref_release_aarch64/Tegra210_Linux_R32.3.1_aarch64.tbz2'
         'BCM4356A3.hcd'
         'linux.preset'
         '60-linux.hook'
