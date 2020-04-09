@@ -1,0 +1,19 @@
+pre_upgrade() {
+	grep -P '/boot /mnt/hos_data/l4t-arch/\tnone\tbind\t0\t0' /etc/fstab > /dev/null
+	if [[ $? -eq 0 ]]; then
+		echo "Found old fstab! Fixing it..."
+		# please... forgive me
+		# Replaces
+		# /dev/mmcblk0p1  /mnt/hos_data   vfat    rw,relatime     0       2
+		# /boot /mnt/hos_data/l4t-arch/   none    bind    0       0
+		# with 
+		# /dev/mmcblk0p1  /boot   vfat    rw,relatime     0       2
+
+		sed -i -e '/\/boot \/mnt\/hos_data\/l4t-arch\/\tnone\tbind\t0\t0/d' -e 's^/dev/mmcblk0p1\t/mnt/hos_data\tvfat\trw,relatime\t0\t2^/dev/mmcblk0p1\t/boot\tvfat\trw,relatime\t0\t2^' /etc/fstab
+		umount /mnt/hos_data/l4t-arch/
+		umount /mnt/hos_data
+		rmdir /mnt/hos_data
+		mount /dev/mmcblk0p1 /boot
+	fi
+	
+}
