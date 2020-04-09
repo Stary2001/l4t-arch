@@ -1,5 +1,41 @@
 #!/bin/bash
 
+staging=no
+options=$(getopt -o hs --long staging --long help -- "$@")
+
+usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo " -s, --staging	Install built local packages"
+    echo " -h, --help		Show this help text"
+}
+
+[ $? -eq 0 ] || {
+	usage
+	exit 1
+}
+
+eval set -- "$options"
+while true; do
+    case "$1" in
+    -s)
+        staging=yes
+        ;;
+    --staging)
+        staging=yes
+        ;;
+    -h|--help)
+	usage
+	exit 0
+	;;
+    --)
+        shift
+        break
+        ;;
+    esac
+    shift
+done
+
 root_dir="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 
 cleanup(){
@@ -28,7 +64,10 @@ prepare() {
 
 setup_base(){
 	cp ${root_dir}/builder/build-stage2.sh ${root_dir}/builder/base-pkgs ${root_dir}/tmp/arch-rootfs/
-	cp -r ${root_dir}/pkgbuilds/*/*.pkg.* ${root_dir}/tmp/arch-rootfs/pkgs/
+
+	if [[ $staging == "yes" ]]; then
+		cp -r ${root_dir}/pkgbuilds/*/*.pkg.* ${root_dir}/tmp/arch-rootfs/pkgs/
+	fi
 	
 	bsdtar xpf ${root_dir}/tarballs/ArchLinuxARM-aarch64-latest.tar.gz -C ${root_dir}/tmp/arch-rootfs/
 
