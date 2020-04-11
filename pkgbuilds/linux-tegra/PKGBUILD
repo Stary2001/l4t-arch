@@ -32,6 +32,7 @@ source=('linux-nvgpu-r32.2.2.tar.gz::https://gitlab.incom.co/CM-Shield/android_k
 md5sums=("SKIP"
          "SKIP"
          "SKIP"
+	 "SKIP"
          "SKIP"
          "SKIP"
          "SKIP"
