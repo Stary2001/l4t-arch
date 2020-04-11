@@ -11,7 +11,9 @@ pkgrel=1
 arch=('aarch64')
 url="http://www.kernel.org/"
 license=('GPL2')
+depends=('uboot-tools')
 makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'uboot-tools' 'dtc' 'gcc7')
+
 options=('!strip')
 source=('linux-nvgpu-r32.2.2.tar.gz::https://gitlab.incom.co/CM-Shield/android_kernel_nvidia_linux-4.9_kernel_nvgpu/-/archive/lineage-16.0/android_kernel_nvidia_linux-4.9_kernel_nvgpu-lineage-16.0.tar.gz'
         'soc-tegra-rel32.2.2.tar.gz::https://gitlab.incom.co/CM-Shield/android_kernel_nvidia_linux-4.9_hardware_nvidia_soc_tegra/-/archive/lineage-16.0/android_kernel_nvidia_linux-4.9_hardware_nvidia_soc_tegra-lineage-16.0.tar.gz'
@@ -23,7 +25,7 @@ source=('linux-nvgpu-r32.2.2.tar.gz::https://gitlab.incom.co/CM-Shield/android_k
         'git+https://gitlab.com/switchroot/l4t-platform-t210-switch.git#branch=linux-rel32'
         'https://developer.nvidia.com/embedded/dlc/r32-3-1_Release_v1.0/t210ref_release_aarch64/Tegra210_Linux_R32.3.1_aarch64.tbz2'
         'BCM4356A3.hcd'
-        'linux.preset'
+	'build_uboot_initramfs'
         '60-linux.hook'
         '90-linux.hook')
 
@@ -36,7 +38,8 @@ md5sums=("SKIP"
          "SKIP"
          "SKIP"
          "SKIP"
-         '2df9431c6bc2d19983f3b61886d7c9c2'
+	 "SKIP"
+ 	 "SKIP"
          'ce6c81ad1ad1f8b333fd6077d47abdaf'
          '3be13a4ae5ade34e36dc52c4e201ce7c')
 
@@ -226,6 +229,8 @@ _package() {
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/60-${pkgbase}.hook"
   sed "${_subst}" 90-linux.hook |
     install -Dm644 /dev/stdin "${pkgdir}/usr/share/libalpm/hooks/90-${pkgbase}.hook"
+
+  install -Dm755 $srcdir/build_uboot_initramfs ${pkgdir}/usr/bin/build_uboot_initramfs
 
   # i don't know why this appears, but it does?
   # get rid of usr/lib/firmware/ttusb-budget/dspbootcode.bin
