@@ -2,21 +2,24 @@
 
 pkgname=switch-boot-files-bin
 pkgver=r32
-pkgrel=3
+pkgrel=5
 epoch=
 pkgdesc=""
 arch=(any)
 url=""
 license=()
+makedepends=(uboot-tools)
 optdepends=()
 install=switch-boot-files-bin.install
-source=(https://9net.org/l4t-arch/boot-files-r32.tar.gz)
-sha256sums=(SKIP)
+#source=(01-L4T-Arch.ini https://9net.org/l4t-arch/coreboot.rom boot.scr.txt mkscr)
+source=(01-L4T-Arch.ini coreboot.rom boot.scr.txt mkscr)
+sha256sums=(SKIP SKIP SKIP SKIP)
 noextract=()
 validpgpkeys=()
-
-package() {
-	mkdir -p $pkgdir/boot/l4t-arch/
-	cp -r $srcdir/bootloader $pkgdir/boot/
-	cp -r $srcdir/l4t-arch/{boot.scr,coreboot.rom} $pkgdir/boot/l4t-arch/
+package() {	
+	cd $srcdir
+	mkdir -p $pkgdir/boot/switchroot/arch $pkgdir/boot/bootloader
+	cp -r 01-L4T-Arch.ini $pkgdir/boot/bootloader
+	cp -r {mkscr,coreboot.rom} $pkgdir/boot/switchroot/arch
+	mkimage -A arm -T script -O linux -d boot.scr.txt $pkgdir/boot/switchroot/arch/boot.scr
 }

@@ -1,0 +1,6 @@
+load mmc 1:1 0x83000000 switchroot/arch/Image
+load mmc 1:1 0x8d000000 switchroot/arch/tegra210-icosa.dtb
+load mmc 1:1 0x92000000 switchroot/arch/initramfs-linux.img
+setenv bootargs 'root=/dev/mmcblk0p9 rw access=m2 firmware_class.path=/usr/lib/firmware/ fbcon=primary:1 pmc_reboot2payload.enabled=1 pmc_reboot2payload.reboot_action=bootloader pmc_reboot2payload.default_payload=reboot_payload.bin pmc_reboot2payload.hekate_config_id=ARCHLIN console=ttyS0,115200,8n1 ' 
+usb reset
+booti 0x83000000 0x92000000 0x8d000000

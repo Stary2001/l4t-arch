@@ -13,7 +13,7 @@ pre_upgrade() {
 		umount /mnt/hos_data/l4t-arch/
 		umount /mnt/hos_data
 		rmdir /mnt/hos_data
-		mount /dev/mmcblk0p1 /boot
+		mount /boot
 	fi
 	
 }

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mkinitcpio -g /tmp/initramfs -c /etc/mkinitcpio.conf && mkimage -A arm64 -O linux -T ramdisk -C gzip -d /tmp/initramfs /boot/switchroot/arch/initramfs
