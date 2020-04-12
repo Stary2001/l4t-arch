@@ -1,0 +1,12 @@
+build() {
+    add_binary "resize2fs"
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOF
+	This hook resizes rootfs on boot. That's it.
+HELPEOF
+}
+
+# vim: set ft=sh ts=4 sw=4 et

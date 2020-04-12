@@ -1,0 +1,8 @@
+#!/usr/bin/ash
+
+run_latehook() {
+	if [[ ! -e /new_root/.resize_complete ]]; then
+		resize2fs $root
+		touch /new_root/.resize_complete
+	fi
+}
