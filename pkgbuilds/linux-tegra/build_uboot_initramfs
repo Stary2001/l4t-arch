@@ -1,3 +1,7 @@
 #!/bin/bash
 
-mkinitcpio -g /tmp/initramfs -c /etc/mkinitcpio.conf && mkimage -A arm64 -O linux -T ramdisk -C gzip -d /tmp/initramfs /boot/switchroot/arch/initramfs
+# Ensure the dir exists. Just in case.
+mkdir -p /boot/switchroot/arch/
+mkinitcpio -p linux-tegra && mkimage -A arm64 -O linux -T ramdisk -C gzip -d /boot/switchroot/arch/initramfs-linux.cpio.gz /boot/switchroot/arch/initramfs
+
+rm /boot/switchroot/arch/initramfs-linux.cpio.gz /boot/switchroot/arch/initramfs-linux-fallback.cpio.gz

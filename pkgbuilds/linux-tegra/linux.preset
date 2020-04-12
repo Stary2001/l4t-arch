@@ -6,9 +6,9 @@ ALL_kver="%KERNVER%"
 PRESETS=('default' 'fallback')
 
 #default_config="/etc/mkinitcpio.conf"
-default_image="/boot/l4t-arch/initramfs-linux.img"
+default_image="/boot/switchroot/arch/initramfs-linux.cpio.gz"
 #default_options=""
 
 #fallback_config="/etc/mkinitcpio.conf"
-fallback_image="/boot/l4t-arch/initramfs-linux-fallback.img"
+fallback_image="/boot/switchroot/arch/initramfs-linux-fallback.cpio.gz"
 fallback_options="-S autodetect"

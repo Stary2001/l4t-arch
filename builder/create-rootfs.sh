@@ -95,9 +95,10 @@ Server = https://9net.org/l4t-arch/" >> ${root_dir}/tmp/arch-rootfs/etc/pacman.c
 }
 
 buildimg(){
-	size=$(du -hs ${root_dir}/tmp/arch-rootfs/ | head -n1 | awk '{print int($1+2);}')$(du -hs ${root_dir}/tmp/arch-rootfs/ | head -n1 | awk '{print $1;}' | grep -o '[[:alpha:]]')
+	# Get the size in MiB, align it upwards to nearest 4MB. Then add some free space.
+	size=$(du -hs -BM ${root_dir}/tmp/arch-rootfs/ | head -n1 | awk '{print int($1/4)*4 + 4 + 512;}')M
+	echo "Estimated rootfs size: $size"
 
-	rm ${root_dir}/l4t-arch.img
 	dd if=/dev/zero of=${root_dir}/l4t-arch.img bs=1 count=0 seek=$size
 	
 	loop=`losetup --find`
@@ -110,9 +111,15 @@ buildimg(){
 	umount $loop
 	losetup -d $loop
 
-	pushd ${root_dir}/tmp/arch-bootfs
-	zip -r ${root_dir}/l4t-boot.zip *
-	popd
+	mkdir ${root_dir}/tmp/final
+	cd ${root_dir}/tmp/final
+	mv ${root_dir}/tmp/arch-bootfs/* .
+
+	mkdir -p switchroot/install/
+	mv ${root_dir}/l4t-arch.img switchroot/install/l4t.00
+
+	rm ${root_dir}/l4t-arch.7z
+	7z a ${root_dir}/l4t-arch.7z *
 }
 
 if [[ `whoami` != root ]]; then

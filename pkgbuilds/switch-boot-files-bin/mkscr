@@ -1,0 +1,1 @@
+mkimage -A arm -T script -O linux -d boot.scr.txt boot.scr
