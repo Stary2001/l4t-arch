@@ -9,6 +9,7 @@ arch=(any)
 url=""
 license=()
 makedepends=(uboot-tools)
+depends=(linux-tegra)
 optdepends=()
 install=switch-boot-files-bin.install
 #source=(l4t-arch.ini boot.scr.txt mkscr)
