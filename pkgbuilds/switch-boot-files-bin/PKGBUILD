@@ -12,18 +12,20 @@ makedepends=(uboot-tools)
 depends=(linux-tegra)
 optdepends=()
 install=switch-boot-files-bin.install
-#source=(l4t-arch.ini boot.scr.txt mkscr)
 source=(l4t-arch.ini https://9net.org/l4t-arch/coreboot.rom boot.scr.txt mkscr resize-hook resize-build-hook)
-sha256sums=(SKIP SKIP SKIP SKIP)
+sha256sums=(SKIP SKIP SKIP SKIP SKIP SKIP)
 noextract=()
 validpgpkeys=()
-package() {	
+
+package() {
 	cd $srcdir
 	mkdir -p $pkgdir/boot/bootloader/ini $pkgdir/boot/switchroot/arch/
+	mkdir -p $pkgdir/usr/lib/initcpio/{hooks,install}
+
 	install l4t-arch.ini $pkgdir/boot/bootloader/ini/switchroot-arch.ini
 	install mkscr boot.scr.txt coreboot.rom $pkgdir/boot/switchroot/arch/
 	mkimage -A arm -T script -O linux -d boot.scr.txt $pkgdir/boot/switchroot/arch/boot.scr
 
-	install resize-hook /usr/lib/initcpio/hooks/resize-rootfs
-	install resize-build-hook /usr/lib/initcpio/install/resize-rootfs
+	install resize-hook $pkgdir/usr/lib/initcpio/hooks/resize-rootfs
+	install resize-build-hook $pkgdir/usr/lib/initcpio/install/resize-rootfs
 }
