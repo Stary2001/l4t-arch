@@ -1,16 +1,14 @@
-# Maintainer: Ezekiel Bethel <zek@9net.org>
-
 pkgname=tegra-bsp
-pkgver=r32
-pkgrel=3.1
-pkgdesc="just literal shit"
+pkgver=R32
+pkgrel=4.2
+pkgdesc="Tegra BSP drivers"
 arch=(any)
 url="nvidia.com"
 license=('GPL')
 groups=()
 depends=()
 makedepends=()
-source=(https://developer.nvidia.com/embedded/dlc/r32-3-1_Release_v1.0/t210ref_release_aarch64/Tegra210_Linux_R32.3.1_aarch64.tbz2)
+source=(https://developer.nvidia.com/embedded/L4T/r32_Release_v4.2/t210ref_release_aarch64/Tegra210_Linux_${pkgver}.${pkgrel}_aarch64.tbz2)
 noextract=()
 sha256sums=('SKIP')
 conflicts=(tegra-drivers)
@@ -22,12 +20,17 @@ prepare() {
 build() {
 	tar xvf Linux_for_Tegra/nv_tegra/nvidia_drivers.tbz2
 	tar xvf Linux_for_Tegra/nv_tegra/config.tbz2
+	cp Linux_for_Tegra/bootloader/nv_boot_control.conf ./etc
+	sed -i 's/boot0/p1/g; s/boot1/p2/g' etc/nv_boot_control.conf
 }
 
 package() {
 	# Hold on. We don't want ALL of /etc.
 	mkdir -p $pkgdir/etc/
 	mkdir -p $pkgdir/etc/systemd/system
+
+	# We will need this later
+	cp etc/nv_boot_control.conf $pkgdir/etc/nv_boot_control.conf
 
 	# sed -e 's_/usr/lib/aarch64-linux-gnu_/usr/lib_' -i etc/nv_tegra_release
 	cp -r etc/nv_tegra_release $pkgdir/etc/nv_tegra_release
@@ -60,8 +63,8 @@ package() {
 	# These are OK as well...
 	cp -r usr/share $pkgdir/usr/share/
 	cp -r usr/bin $pkgdir/usr/bin/
-	# move sbin -> bin
-	cp -r usr/sbin/* $pkgdir/usr/bin/
+	# copy sbin
+	cp -r usr/sbin/ $pkgdir/usr/
 	# pass through
 	cp -r var/ $pkgdir/var/
 	cp -r opt/ $pkgdir/opt/ 
