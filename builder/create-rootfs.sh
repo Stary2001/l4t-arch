@@ -55,10 +55,10 @@ prepare() {
 	fi
 
 	if [[ ! -e ${root_dir}/tmp/arch-rootfs/reboot_payload.bin ]]; then
-		wget https://github.com/CTCaer/hekate/releases/download/v5.1.3/hekate_ctcaer_5.1.3_Nyx_0.8.6.zip -P ${root_dir}/tmp/
-		unzip ${root_dir}/tmp/hekate_ctcaer_5.1.3_Nyx_0.8.6.zip hekate_ctcaer_5.1.3.bin
-		mv hekate_ctcaer_5.1.3.bin ${root_dir}/tmp/arch-rootfs/reboot_payload.bin
-		rm ${root_dir}/tmp/hekate_ctcaer_5.1.3_Nyx_0.8.6.zip
+		wget https://github.com/CTCaer/hekate/releases/download/v5.2.0/hekate_ctcaer_5.2.0_Nyx_0.9.0.zip -P ${root_dir}/tmp/
+		unzip ${root_dir}/tmp/hekate_ctcaer_5.2.0_Nyx_0.9.0.zip hekate_ctcaer_5.2.0.bin
+		mv hekate_ctcaer_5.2.0.bin ${root_dir}/tmp/arch-rootfs/reboot_payload.bin
+		rm ${root_dir}/tmp/hekate_ctcaer_5.2.0_Nyx_0.9.0.zip
 	fi
 }
 
