@@ -14,4 +14,4 @@ RUN pacman -U /yay/*.pkg.tar.xz --noconfirm
 USER build
 RUN yay -S qemu-user-static-bin --noconfirm
 USER root
-RUN mkdir -p /root/l4t/
+RUN mkdir -p /root/builder/

@@ -1,11 +1,19 @@
 #!/usr/bin/bash
 
 root_dir="$(dirname "$(dirname "$(readlink -fm "$0")")")"
-build_dir=/${root_dir}/l4t/
+build_dir="$(dirname "$(readlink -fm "$0")")"/l4t
+cwd="$(dirname "$(readlink -fm "$0")")"
+tarballs=${cwd}/tarballs/
+
+distro_name=arch
 url=http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-archive=${url##*/}
+archiveImage="$(echo ${url} | rev | cut -d/ -f1 | rev)"
 hekate_version=5.2.0
 nyx_version=0.9.0
+pkg_types={*.pkg.*,*.rpm,*.deb}
+
+raw=false
+[[ $(echo ${archiveImage} | rev | cut -d. -f2 | rev) == "raw" ]] && raw=true
 
 docker=no
 staging=no
@@ -73,13 +81,14 @@ while true; do
     shift
 done
 
+
 buildWithDocker() {
-	docker image build -t archl4tbuild:1.0 ${root_dir}
+	docker image build -t l4t-builder:1.0 ${cwd}
 	if [[ ${staging} == "yes" ]]; then
-		docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${root_dir}:/root/l4t-arch archl4tbuild:1.0 /root/l4t-arch/builder/create-rootfs.sh -s
+		docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh -s
 		exit
 	fi
-	docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${root_dir}:/root/l4t-arch archl4tbuild:1.0 /root/l4t-arch/builder/create-rootfs.sh
+	docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh
 }
 
 cleanup() {
@@ -88,40 +97,44 @@ cleanup() {
 }
 
 prepareFiles() {
-	mkdir -p ${build_dir}/{{r,b}ootfs,tmp,switchroot/install/}
-
-	if [[ ! -e ${root_dir}/${archive} ]]; then
-		wget ${url} -P ${root_dir}
+	if [[ ! -e ${tarballs}/${archiveImage} ]]; then
+		wget ${url} -P ${tarballs}
 	fi
 
-	bsdtar xpf ${build_dir}/${archive} -C ${build_dir}/rootfs/
-
-	if [[ ! -e ${root_dir}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip ]]; then
-		wget https://github.com/CTCaer/hekate/releases/download/v${hekate_version}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip -P ${root_dir}
+	if [[ ${raw} == "true" ]]; then
+		unxz ${tarballs}/${archiveImage}
+	else
+		bsdtar xpf ${tarballs}/${archiveImage} -C ${build_dir}/rootfs/
 	fi
 
-	unzip ${build_dir}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip hekate_ctcaer_${hekate_version}.bin
-	mv ${root_dir}/hekate_ctcaer_${hekate_version}.bin ${build_dir}/rootfs/lib/firmware/reboot_payload.bin
-}
+	if [[ ! -e ${tarballs}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip ]]; then
+		wget https://github.com/CTCaer/hekate/releases/download/v${hekate_version}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip -P ${tarballs}
+	fi
 
-build() {
+	unzip ${tarballs}/hekate_ctcaer_${hekate_version}_Nyx_${nyx_version}.zip hekate_ctcaer_${hekate_version}.bin -d ${build_dir}/rootfs/
+	mv ${build_dir}/rootfs/hekate_ctcaer_${hekate_version}.bin ${build_dir}/rootfs/lib/firmware/reboot_payload.bin
+
 	echo -e "/dev/mmcblk0p1	/boot	vfat	rw,relatime	0	2\n" >> ${build_dir}/rootfs/etc/fstab
 	sed -i 's/^HOOKS=(\(.*\))$/HOOKS=(\1 resize-rootfs)/' ${build_dir}/rootfs/etc/mkinitcpio.conf
 
 	cp /usr/bin/qemu-aarch64-static ${build_dir}/rootfs/usr/bin/
-	cp /etc/resolv.conf ${build_dir}/rootfs/etc/
 
 	if [[ ${staging} == "yes" ]]; then
-		cp -r ${root_dir}/pkgbuilds/*/*.pkg.* ${build_dir}/rootfs/pkgs/
+		cp -r ${root_dir}/pkgbuilds/*/${pkg_types} ${build_dir}/rootfs/pkgs/
 	fi
+	
+	chmod +x ${cwd}/build-stage2.sh
+	cp ${cwd}/{build-stage2.sh,base-pkgs} ${build_dir}/rootfs/
+}
 
+build() {
 	mount --bind ${build_dir}/rootfs ${build_dir}/rootfs
 	mount --bind ${build_dir}/bootfs ${build_dir}/rootfs/boot/
 	
-	# Install Packages
+	# Install Packages and configs here
 	arch-chroot ${build_dir}/rootfs/ ./build-stage2.sh
 	
-	rm -rf ${build_dir}/rootfs/{base-pkgs,build-stage2.sh/,pkgs/,usr/bin/qemu-aarch64-static,etc/pacman.d/gnupg/S.gpg-agent*}
+	rm -rf ${build_dir}/rootfs/{base-pkgs,build-stage2.sh/,pkgs/,usr/bin/qemu-aarch64-static}
 
 	size=$(du -hs -BM ${build_dir}/rootfs/ | head -n1 | awk '{print int($1/4)*4 + 4 + 512;}')M
 	echo "Estimated rootfs size: $size"
@@ -132,6 +145,7 @@ build() {
 	losetup ${loop} ${build_dir}/switchroot/install/l4t.img
 
 	mkfs.ext4 ${loop}
+	[[ ${raw} == true ]] && kpartx -a ${build_dir}/${archiveImage} && sleep 1 && vgchange -ay fedora && sleep 1
 	mount ${loop} ${build_dir}/tmp
 
 	cp -prd ${build_dir}/rootfs/* ${build_dir}/tmp/
@@ -144,26 +158,29 @@ build() {
 	rm ${build_dir}/switchroot/install/l4t.img
 	
 	umount -R ${build_dir}/rootfs/{,boot/}
+	[[ ${raw} == true ]] && vgchange -an fedora && kpartx -d ${build_dir}/${archiveImage}
+
 	mv ${build_dir}/bootfs/* ${build_dir}/
-	dd if=${build_dir}/ of=${root_dir}/l4t-arch.img bs=4M
+	dd if=${build_dir}/ of=${root_dir}/l4t-${distro_name}.img bs=4M
 }
 
-if [[ `whoami` != root ]]; then
-	echo hey! run this as root.
-	exit
-fi
-
-echo "\nCleaning up old build\n"
-cleanup
-if [[ ${docker} == "yes" ]]; then
+echo -e "\nCleaning up old build\n"
+[[ -e ${build_dir} ]] && cleanup
+echo -e "\nCreating build folders\n"
+mkdir -p ${build_dir}/{tmp/,bootfs/,rootfs/pkgs,switchroot/install/}
+if [[ ${docker} == "yes" && $(groups "${USER}" | grep -q docker && echo "true") == "true" ]]; then
 	echo "Build using Docker"
 	buildWithDocker
 	exit
+elif [[ `whoami` != root ]]; then
+	echo hey! run this as root.
+	exit
+else
+	echo -e "\nPreparing required files\n"
+	prepareFiles
+	echo -e "\nBuilding Image\n"
+	build
+	echo -e "\nCleaning up after build\n"
+	cleanup
+	echo -e "Done!\n"
 fi
-echo "\nPreparing required files\n"
-prepareFiles
-echo "\nBuilding Image\n"
-build
-echo "\nCleaning up after build\n"
-cleanup
-echo "Done!\n"

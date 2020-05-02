@@ -19,6 +19,6 @@ switch-boot-files-bin
 systemd-suspend-modules
 xorg-server-tegra
 switch-configs
-tegra-bsp 
+tegra-bsp
 linux-tegra
-NetworkManager
+networkmanager
