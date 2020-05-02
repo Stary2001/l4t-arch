@@ -7,21 +7,12 @@ Arch Linux arm64 repository for L4T.
 ```
 Usage: create-rootfs.sh [options]
 Options:
+ -d, --docker   Build using Docker
  -s, --staging	Install built local packages
  -h, --help		Show this help text
 ```
 
-*Options **can** be used with either docker `build.sh` helper script or `create-rootfs.sh`.*
-
-## Building with Docker
-
-```sh
-./docker-builder/build.sh
-```
-
-## Building without Docker
-
-### Dependencies
+## Dependencies ( when building without docker option )
 
 On a Arch Linux host install `qemu-user-static` from `AUR` and :
 
@@ -29,7 +20,7 @@ On a Arch Linux host install `qemu-user-static` from `AUR` and :
 pacman -S qemu qemu-arch-extra arch-install-scripts parted dosfstools wget libarchive p7zip
 ```
 
-### Building
+## Building
 
 - `git clone https://github.com/Stary2001/l4t-arch/`
 - As root user run `./l4t-arch/builder/create-rootfs.sh`

@@ -1,33 +1,31 @@
 #!/usr/bin/bash
 uname -a
 
+# Workaround for flakiness of `pt` mirror.
+sed -i 's/mirror.archlinuxarm.org/de.mirror.archlinuxarm.org/g' ${build_dir}/rootfs/etc/pacman.d/mirrorlist
+echo "[switch]\nSigLevel = Optional\nServer = https://9net.org/l4t-arch/" >> ${build_dir}/rootfs/etc/pacman.conf
+
 pacman-key --init
 pacman-key --populate archlinuxarm
-
 # we won't be needing this
 pacman -R linux-aarch64 --noconfirm
 
-until pacman -Syu systemd-suspend-modules xorg-server-tegra switch-configs `cat base-pkgs` --noconfirm
-# until pacman -Syu switch-boot-files-bin systemd-suspend-modules xorg-server-tegra switch-configs tegra-bsp linux-tegra gcc7 `cat base-pkgs` --noconfirm
-do
-	echo "Error check your build or let the script retry last cmd"
+i=5
+until [[ ${i} -gt 0 ]]; do
+	pacman -Syu `cat base-pkgs` --noconfirm 
+	echo "\n\n Packages installation failed, retrying !\netry attempts left : ${$((--i))}\n\n"
 done
 
 for pkg in `find /pkgs/*.pkg.* -type f`; do
 	pacman -U $pkg --noconfirm
 done
 
-systemctl enable r2p
-systemctl enable bluetooth
-systemctl enable lightdm
+yes | pacman -Scc
+
+systemctl enable r2p bluetooth lightdm
 
 echo brcmfmac > /etc/suspend-modules.conf
 sed -i 's/#keyboard=/keyboard=onboard/' /etc/lightdm/lightdm-gtk-greeter.conf
 
-yes | pacman -Scc
-
-mv /reboot_payload.bin /lib/firmware/
-gpasswd -a alarm audio
-gpasswd -a alarm video
-
+usermod -aG video,audio,wheel alarm
 ldconfig

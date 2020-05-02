@@ -15,3 +15,10 @@ alsa-utils
 joycond-git
 netctl
 dhcpcd
+switch-boot-files-bin
+systemd-suspend-modules
+xorg-server-tegra
+switch-configs
+tegra-bsp 
+linux-tegra
+NetworkManager
