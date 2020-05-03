@@ -4,6 +4,8 @@ root_dir="$(dirname "$(dirname "$(readlink -fm "$0")")")"
 build_dir="$(dirname "$(readlink -fm "$0")")"/l4t
 cwd="$(dirname "$(readlink -fm "$0")")"
 tarballs=${cwd}/tarballs/
+unset img
+unset imgSize
 
 distro_name=arch
 url=http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
@@ -16,13 +18,15 @@ raw=false
 [[ $(echo ${archiveImage} | rev | cut -d. -f2 | rev) == "raw" ]] && raw=true
 
 docker=no
+hekate=no
 staging=no
-options=$(getopt -o dhs --long docker --long staging --long help -- "$@")
+options=$(getopt -o dhs --long docker,staging,help:,hekate -- "$@")
 
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
 	echo " -d, --docker		Build using docker"
+	echo " --hekate			Create only a hekate flashable image file"
     echo " -s, --staging	Install built local packages"
     echo " -h, --help		Show this help text"
 }
@@ -35,68 +39,53 @@ usage() {
 eval set -- "$options"
 while true; do
     case "$1" in
-	-d)
-        docker=yes
-        ;;
-    --docker)
-        docker=yes
-        ;;
-    -s)
-        staging=yes
-        ;;
-    --staging)
-        staging=yes
-        ;;
-    -h|--help)
+	-d | --docker) docker=yes; shift ;;
+	--hekate) hekate=yes; shift ;;
+    -s | --staging) staging=yes; shift ;;
+    -h | --help)
 	usage
 	exit 0
 	;;
-    --)
-        shift
-        break
-        ;;
+    -- ) shift; break ;;
     esac
-	case "$2" in
-	-d)
-        docker=yes
-        ;;
-    --docker)
-        docker=yes
-        ;;
-    -s)
-        staging=yes
-        ;;
-    --staging)
-        staging=yes
-        ;;
-    -h|--help)
-	usage
-	exit 0
-	;;
-    --)
-        shift
-        break
-        ;;
-    esac
-    shift
 done
 
+cleanup() {
+	echo -e "\nCleaning up uneeded files\n"
+	umount -R ${build_dir}/{tmp,{r,b}ootfs}/*
+	rm -rf ${build_dir}/{tmp/,{b,r}ootfs/pkgs}
+	if [[ ${hekate} == "yes" ]]; then
+		rm -rf ${build_dir}
+	fi
+}
 
-buildWithDocker() {
-	docker image build -t l4t-builder:1.0 ${cwd}
-	if [[ ${staging} == "yes" ]]; then
-		docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh -s
+build() {
+	echo -e "\nCleaning up old build\n"
+	[[ -e ${build_dir} ]] && cleanup
+
+	echo -e "\nCreating build folders\n"
+	mkdir -p ${build_dir}/{tmp/,bootfs/,rootfs/pkgs,switchroot/install/}
+
+	if [[ ${docker} == "yes" && ($(groups "${USER}" | grep -q docker && echo "true") == "true" || `whoami` == root) ]]; then
+		echo "Build using Docker"
+		docker image build -t l4t-builder:1.0 ${cwd}
+		docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh \
+		"$(echo "$options" | sed -e 's/--docker//g' | sed -e 's/-d//g')"
+		exit
+	elif [[ `whoami` != root ]]; then
+		echo hey! run this as root.
 		exit
 	fi
-	docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh
-}
 
-cleanup() {
-	umount -R ${build_dir}/{tmp,{r,b}ootfs}/*
-	rm -rf ${build_dir}/
-}
+	prepareImg() {
+		size=$(du -hs -BM ${imgSize} | head -n1 | awk '{print int($1/4)*4 + 4 + 512;}')M
+		echo "Estimated size: $size"
+		dd if=/dev/zero of=${img} bs=1 count=0 seek=$size
+		loop=`losetup --find`
+		losetup ${loop} ${img}
+	}
 
-prepareFiles() {
+	echo -e "\nPreparing required files\n"
 	if [[ ! -e ${tarballs}/${archiveImage} ]]; then
 		wget ${url} -P ${tarballs}
 	fi
@@ -125,9 +114,7 @@ prepareFiles() {
 	
 	chmod +x ${cwd}/build-stage2.sh
 	cp ${cwd}/{build-stage2.sh,base-pkgs} ${build_dir}/rootfs/
-}
 
-build() {
 	mount --bind ${build_dir}/rootfs ${build_dir}/rootfs
 	mount --bind ${build_dir}/bootfs ${build_dir}/rootfs/boot/
 	
@@ -136,13 +123,10 @@ build() {
 	
 	rm -rf ${build_dir}/rootfs/{base-pkgs,build-stage2.sh/,pkgs/,usr/bin/qemu-aarch64-static}
 
-	size=$(du -hs -BM ${build_dir}/rootfs/ | head -n1 | awk '{print int($1/4)*4 + 4 + 512;}')M
-	echo "Estimated rootfs size: $size"
-
-	dd if=/dev/zero of=${build_dir}/switchroot/install/l4t.img bs=1 count=0 seek=$size
+	imgSize=${build_dir}/rootfs/
+	img=${build_dir}/switchroot/install/l4t.img
 	
-	loop=`losetup --find`
-	losetup ${loop} ${build_dir}/switchroot/install/l4t.img
+	prepareImg
 
 	mkfs.ext4 ${loop}
 	[[ ${raw} == true ]] && kpartx -a ${build_dir}/${archiveImage} && sleep 1 && vgchange -ay fedora && sleep 1
@@ -155,32 +139,25 @@ build() {
 
 	cd ${build_dir}/switchroot/install/
 	split -b4290772992 --numeric-suffixes=0 l4t.img l4t.
-	rm ${build_dir}/switchroot/install/l4t.img
-	
+
 	umount -R ${build_dir}/rootfs/{,boot/}
 	[[ ${raw} == true ]] && vgchange -an fedora && kpartx -d ${build_dir}/${archiveImage}
 
-	mv ${build_dir}/bootfs/* ${build_dir}/
-	dd if=${build_dir}/ of=${root_dir}/l4t-${distro_name}.img bs=4M
+	mv ${build_dir}/bootfs/* ${build_dir}
+
+	cleanup
+
+	if [[ ${hekate} != "yes" ]]; then
+		img=${root_dir}/l4t-${distro_name}.img
+		imgSize=${build_dir}
+		prepareImg
+		mkfs.vfat -F 32 ${loop}
+		mount ${loop} ${build_dir}/tmp
+		cp -prd ${build_dir}/{switchroot,bootloader} ${build_dir}/tmp/
+		umount ${loop}
+		losetup -d ${loop}
+	fi
+	echo -e "Done!\n"
 }
 
-echo -e "\nCleaning up old build\n"
-[[ -e ${build_dir} ]] && cleanup
-echo -e "\nCreating build folders\n"
-mkdir -p ${build_dir}/{tmp/,bootfs/,rootfs/pkgs,switchroot/install/}
-if [[ ${docker} == "yes" && $(groups "${USER}" | grep -q docker && echo "true") == "true" ]]; then
-	echo "Build using Docker"
-	buildWithDocker
-	exit
-elif [[ `whoami` != root ]]; then
-	echo hey! run this as root.
-	exit
-else
-	echo -e "\nPreparing required files\n"
-	prepareFiles
-	echo -e "\nBuilding Image\n"
-	build
-	echo -e "\nCleaning up after build\n"
-	cleanup
-	echo -e "Done!\n"
-fi
+build
