@@ -19,9 +19,8 @@ echo -e "\n\Begining packages installation !\nRetry attempts left : ${i}"
 until pacman -Syu `cat base-pkgs` --noconfirm; do
 	echo -e "\n\nPackages installation failed, retrying !\nRetry attempts left : ${i}"
 	let --i
+	[[ ${i} == 0 ]] && echo -e "\n\n${i} attempt left.\n Building failed !\n Exiting.." && exit 1
 done
-
-[[ ${i} == 0 ]] && echo -e "\n\n${i} attempt left.\n Building failed !\n Exiting.." && exit 1
 
 for pkg in `find /pkgs/*.pkg.* -type f`; do
 	pacman -U $pkg --noconfirm

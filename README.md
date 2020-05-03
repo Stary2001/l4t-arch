@@ -7,14 +7,15 @@ Arch Linux arm64 repository for L4T.
 ```
 Usage: create-rootfs.sh [options]
 Options:
- -d, --docker   Build using Docker
+ -d, --docker   Build with Docker
+ --hekate		Build for hekate
  -s, --staging	Install built local packages
  -h, --help		Show this help text
 ```
 
 ## Dependencies ( when building without docker option )
 
-On a Arch Linux host install `qemu-user-static` from `AUR` and :
+On a Arch Linux host install `qemu-user-static-bin` from `AUR` and :
 
 ```sh
 pacman -S qemu qemu-arch-extra arch-install-scripts parted dosfstools wget libarchive p7zip
@@ -24,6 +25,7 @@ pacman -S qemu qemu-arch-extra arch-install-scripts parted dosfstools wget libar
 
 - `git clone https://github.com/Stary2001/l4t-arch/`
 - As root user run `./l4t-arch/builder/create-rootfs.sh`
+- Output will be `./l4t-arch/l4t-arch.img` or `./l4t-arch/l4t-arch.7z` if you used option `--hekate`
 
 ## Building packages locally
 

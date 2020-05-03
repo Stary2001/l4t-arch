@@ -8,8 +8,8 @@ unset img
 unset imgSize
 
 distro_name=arch
-url=http://os.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
-archiveImage="$(echo ${url} | rev | cut -d/ -f1 | rev)"
+url=http://fl.us.mirror.archlinuxarm.org/os/ArchLinuxARM-aarch64-latest.tar.gz
+archiveImage="$(echo ${url} | rev | cut -d/ -f1 | rev )"
 hekate_version=5.2.0
 nyx_version=0.9.0
 pkg_types={*.pkg.*,*.rpm,*.deb}
@@ -25,8 +25,8 @@ options=$(getopt -o dhs --long docker,staging,help:,hekate -- "$@")
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
-	echo " -d, --docker		Build using docker"
-	echo " --hekate			Create only a hekate flashable image file"
+	echo " -d, --docker		Build with Docker"
+	echo " --hekate			Build for Hekate"
     echo " -s, --staging	Install built local packages"
     echo " -h, --help		Show this help text"
 }
@@ -53,9 +53,11 @@ done
 cleanup() {
 	echo -e "\nCleaning up uneeded files\n"
 	umount -R ${build_dir}/{tmp,{r,b}ootfs}/*
-	rm -rf ${build_dir}/{tmp/,{b,r}ootfs/pkgs}
-	if [[ ${hekate} == "yes" ]]; then
-		rm -rf ${build_dir}
+	if [[ ${docker} != "yes" ]]; then
+		rm -rf ${build_dir}/{tmp/,{b,r}ootfs/pkgs}
+		if [[ ${hekate} == "yes" ]]; then
+			rm -rf ${build_dir}
+		fi
 	fi
 }
 
@@ -71,24 +73,23 @@ build() {
 		docker image build -t l4t-builder:1.0 ${cwd}
 		docker run --privileged --cap-add=SYS_ADMIN --rm -it -v ${cwd}:/root/builder/ l4t-builder:1.0 /root/builder/create-rootfs.sh \
 		"$(echo "$options" | sed -e 's/--docker//g' | sed -e 's/-d//g')"
-		exit
+		exit 0
 	elif [[ `whoami` != root ]]; then
 		echo hey! run this as root.
-		exit
+		exit 1
 	fi
 
 	prepareImg() {
 		size=$(du -hs -BM ${imgSize} | head -n1 | awk '{print int($1/4)*4 + 4 + 512;}')M
 		echo "Estimated size: $size"
-		dd if=/dev/zero of=${img} bs=1 count=0 seek=$size
+		dd if=/dev/zero of=${img} bs=1 count=0 seek=${size}
 		loop=`losetup --find`
 		losetup ${loop} ${img}
 	}
 
 	echo -e "\nPreparing required files\n"
-	if [[ ! -e ${tarballs}/${archiveImage} ]]; then
-		wget ${url} -P ${tarballs}
-	fi
+	[[ -e ${tarballs}/${archiveImage}* ]] && rm ${tarballs}/${archiveImage}*
+	wget ${url} -P ${tarballs}
 
 	if [[ ${raw} == "true" ]]; then
 		unxz ${tarballs}/${archiveImage}
@@ -128,7 +129,7 @@ build() {
 	
 	prepareImg
 
-	mkfs.ext4 ${loop}
+	mkfs.ext4 -F ${loop}
 	[[ ${raw} == true ]] && kpartx -a ${build_dir}/${archiveImage} && sleep 1 && vgchange -ay fedora && sleep 1
 	mount ${loop} ${build_dir}/tmp
 
@@ -139,14 +140,13 @@ build() {
 
 	cd ${build_dir}/switchroot/install/
 	split -b4290772992 --numeric-suffixes=0 l4t.img l4t.
+	rm -rf ${build_dir}/switchroot/install/l4t.img
 
 	umount -R ${build_dir}/rootfs/{,boot/}
 	[[ ${raw} == true ]] && vgchange -an fedora && kpartx -d ${build_dir}/${archiveImage}
 
 	mv ${build_dir}/bootfs/* ${build_dir}
-
-	cleanup
-
+	
 	if [[ ${hekate} != "yes" ]]; then
 		img=${root_dir}/l4t-${distro_name}.img
 		imgSize=${build_dir}
@@ -156,8 +156,13 @@ build() {
 		cp -prd ${build_dir}/{switchroot,bootloader} ${build_dir}/tmp/
 		umount ${loop}
 		losetup -d ${loop}
+		echo -e "Done!\n"
+	else
+		7z x ${build_dir}/* ${root_dir}/SWR-"$(echo ${archiveImage} | rev | cut -d. -f1 | rev)".7z
 	fi
+	cleanup
 	echo -e "Done!\n"
+	exit 0
 }
 
 build
