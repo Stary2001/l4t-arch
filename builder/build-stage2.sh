@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/env bash
 uname -a
 
 # Pre install configurations
