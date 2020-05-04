@@ -7,31 +7,17 @@ Arch Linux arm64 repository for L4T.
 ```
 Usage: create-rootfs.sh [options]
 Options:
- -d, --docker   Build with Docker
- --hekate		Build for hekate
- -s, --staging	Install built local packages
- -h, --help		Show this help text
-```
-
-## Dependencies ( when building without docker option )
-
-On a Arch Linux host install `qemu-user-static-bin` from `AUR` and :
-
-```sh
-pacman -S qemu qemu-arch-extra arch-install-scripts parted dosfstools wget libarchive p7zip
+ -f, --force             Download setup files anyway
+ --hekate                Build for Hekate
+ -n, --no-docker         Build without Docker
+ -s, --staging           Install built local packages
+ --distro <name>         Select a distro to install
+ -h, --help              Show this help text
 ```
 
 ## Building
 
-- `git clone https://github.com/Stary2001/l4t-arch/`
-- As root user run `./l4t-arch/builder/create-rootfs.sh`
-- Output will be `./l4t-arch/l4t-arch.img` or `./l4t-arch/l4t-arch.7z` if you used option `--hekate`
-
-## Building packages locally
-
-**NOTE: All required packages for Arch to work are avalaible in the repository used in during the rootfs build.** \
-**Therefore you should only build packages if you know what you're doing**
-
-To build any packages go to the his directory ( e.g.: `cd pkgbuilds/gcc7`) and do `makepkg -s` as a regular user on a Arch host.
-
-*Refer to archlinux documentation for more infos*
+On a Ubuntu host :
+- `apt-get install -y git tar wget p7zip unzip parted xz-utils dosfstools lvm2 qemu qemu-user-static proot`
+- `git clone https://github.com/Azkali/jet-factory`
+- As root user run `./jet-factory/create-rootfs.sh`
